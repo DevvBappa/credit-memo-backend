@@ -27,10 +27,11 @@ You read messy OCR text from financial documents and produce a structured memo.
 
 Rules:
 - Only use numbers explicitly in the text. Do not invent.
-- source_pages: use page numbers from markers like 'PAGE 1'
+- source_pages: MUST be a list with at least one page number from markers like 'PAGE 1', 'PAGE 2'. Never use empty list [].
 - If data missing, omit the metric or set confidence to "incomplete_data"
-- Executive summary: 3-5 short bullets in plain English.
-- Top risks: 3 most important credit risks.
+- Executive summary: exactly 3-5 short bullets in plain English.
+- Top risks: exactly 1-3 most important credit risks with non-empty source_pages.
+- confidence: must be either "strong" or "incomplete_data" (lowercase, use underscore)
 
 Output valid JSON matching the schema exactly."""
             },

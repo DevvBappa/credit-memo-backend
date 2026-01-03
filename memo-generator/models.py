@@ -23,6 +23,6 @@ class Risk(BaseModel):
 
 class Memo(BaseModel):
     """Credit memo structure"""
-    executive_summary: List[str] = Field(..., max_items=5, description="3-5 bullets")
+    executive_summary: List[str] = Field(..., min_items=3, max_items=5, description="3-5 bullets")
     key_metrics: List[Metric] = Field(default_factory=list)
-    top_risks: List[Risk] = Field(..., max_items=3)
+    top_risks: List[Risk] = Field(..., min_items=1, max_items=3, description="1-3 top credit risks")
