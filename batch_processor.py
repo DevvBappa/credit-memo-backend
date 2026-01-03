@@ -7,6 +7,9 @@ import pdfplumber
 import os
 import json
 from pathlib import Path
+from fastapi import UploadFile
+from typing import List
+import tempfile
 
 
 class PDFExtractor:
@@ -80,15 +83,93 @@ class PDFExtractor:
 class BatchPDFProcessor:
     """Process multiple PDF files and generate separate outputs"""
     
-    def __init__(self, pdf_paths):
+    def __init__(self, pdf_paths=None):
         """
         Initialize batch processor
         
         Args:
-            pdf_paths (list): List of PDF file paths
+            pdf_paths (list): List of PDF file paths (optional for API usage)
         """
-        self.pdf_paths = pdf_paths
+        self.pdf_paths = pdf_paths or []
         self.results = []
+    
+    @staticmethod
+    async def process_uploaded_files(files: List[UploadFile]) -> dict:
+        """
+        Process PDF files uploaded from frontend
+        
+        Args:
+            files: List of uploaded PDF files from FastAPI
+            
+        Returns:
+            dict: Processing results with extracted text
+        """
+        temp_files = []
+        processor = BatchPDFProcessor()
+        
+        try:
+            # Save uploaded files to temporary location
+            for file in files:
+                if not file.filename.lower().endswith('.pdf'):
+                    continue
+                
+                # Create temporary file
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+                content = await file.read()
+                temp_file.write(content)
+                temp_file.close()
+                
+                temp_files.append(temp_file.name)
+                processor.pdf_paths.append(temp_file.name)
+            
+            if not processor.pdf_paths:
+                return {
+                    'success': False,
+                    'error': 'No valid PDF files provided'
+                }
+            
+            # Process all PDFs
+            processor.process_all(save_individual_files=False)
+            
+            # Get successful results
+            successful_results = [r for r in processor.results if r['success']]
+            
+            if not successful_results:
+                return {
+                    'success': False,
+                    'error': 'Failed to extract text from PDFs',
+                    'results': processor.results
+                }
+            
+            # Combine all extracted text
+            combined_text = ""
+            for result in successful_results:
+                combined_text += result['text'] + "\n\n"
+            
+            return {
+                'success': True,
+                'text': combined_text.strip(),
+                'total_pdfs': len(processor.pdf_paths),
+                'successful_extractions': len(successful_results),
+                'results': [
+                    {
+                        'filename': r['filename'],
+                        'success': r['success'],
+                        'total_pages': r.get('total_pages', 0),
+                        'pages_with_text': r.get('pages_with_text', 0),
+                        'error': r.get('error')
+                    }
+                    for r in processor.results
+                ]
+            }
+            
+        finally:
+            # Clean up temporary files
+            for temp_file in temp_files:
+                try:
+                    os.unlink(temp_file)
+                except:
+                    pass
         
     def process_all(self, save_individual_files=True):
         """
