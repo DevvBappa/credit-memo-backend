@@ -152,7 +152,14 @@ def main():
                 f.write(f"Extracted from: {result['metadata']['filename']}\n")
                 f.write(f"Total Pages: {result['total_pages']}\n")
                 f.write("=" * 80 + "\n\n")
-                f.write(extractor.get_full_text())
+                
+                # Write each page with clear separators
+                for page_data in extractor.text_content:
+                    f.write(f"{'─' * 80}\n")
+                    f.write(f"PAGE {page_data['page']}\n")
+                    f.write(f"{'─' * 80}\n\n")
+                    f.write(page_data['text'])
+                    f.write("\n\n")
             print(f"✅ Text saved to: {output_file}")
     else:
         print(f"❌ Error: {result['error']}")

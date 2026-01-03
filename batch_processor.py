@@ -93,7 +93,14 @@ class BatchPDFProcessor:
             f.write(f"Total Pages: {metadata['total_pages']}\n")
             f.write(f"Pages with Text: {metadata['pages_with_text']}\n")
             f.write("=" * 80 + "\n\n")
-            f.write(extractor.get_full_text())
+            
+            # Write each page with clear separators
+            for page_data in extractor.text_content:
+                f.write(f"{'─' * 80}\n")
+                f.write(f"PAGE {page_data['page']}\n")
+                f.write(f"{'─' * 80}\n\n")
+                f.write(page_data['text'])
+                f.write("\n\n")
     
     def display_summary(self):
         """Display summary of batch processing"""
