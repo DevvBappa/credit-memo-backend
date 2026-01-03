@@ -6,7 +6,12 @@ from groq import Groq
 from typing import Any
 from models import Memo
 
-#replace this comment
+# Load environment variables from .env file
+load_dotenv()
+
+client = instructor.from_groq(
+    Groq(api_key=os.getenv("GROQ_API_KEY"))
+)
 
 def generate_memo(ocr_text: str) -> Memo:
     """Generate memo from OCR text"""
