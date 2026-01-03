@@ -1,3 +1,9 @@
 pypdf2
 pdfplumber
 python-docx
+fastapi 
+uvicorn 
+instructor 
+pydantic 
+groq 
+python-dotenv
