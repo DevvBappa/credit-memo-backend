@@ -95,44 +95,6 @@ class BatchPDFProcessor:
             f.write("=" * 80 + "\n\n")
             f.write(extractor.get_full_text())
     
-    def generate_summary_report(self, output_file='batch_summary.txt'):
-        """
-        Generate a summary report of all processed PDFs
-        
-        Args:
-            output_file (str): Path to summary report file
-        """
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write("BATCH PDF PROCESSING SUMMARY\n")
-            f.write("=" * 80 + "\n\n")
-            f.write(f"Total PDFs Processed: {len(self.results)}\n")
-            
-            successful = sum(1 for r in self.results if r['success'])
-            failed = len(self.results) - successful
-            
-            f.write(f"Successful: {successful}\n")
-            f.write(f"Failed: {failed}\n")
-            f.write("\n" + "=" * 80 + "\n\n")
-            
-            for idx, result in enumerate(self.results, start=1):
-                f.write(f"{idx}. {result['filename']}\n")
-                f.write("─" * 80 + "\n")
-                
-                if result['success']:
-                    f.write(f"Status: ✅ SUCCESS\n")
-                    f.write(f"Total Pages: {result['total_pages']}\n")
-                    f.write(f"Pages with Text: {result['pages_with_text']}\n")
-                    f.write(f"Characters Extracted: {len(result['text'])}\n")
-                    if 'output_file' in result:
-                        f.write(f"Output File: {result['output_file']}\n")
-                else:
-                    f.write(f"Status: ❌ FAILED\n")
-                    f.write(f"Error: {result['error']}\n")
-                
-                f.write("\n")
-        
-        print(f"\n📊 Summary report saved to: {output_file}")
-    
     def display_summary(self):
         """Display summary of batch processing"""
         print("\n\n" + "=" * 80)
@@ -195,25 +157,12 @@ def main():
     save_files = input("\nSave separate text file for each PDF? (y/n, default=y): ").lower()
     save_individual = save_files != 'n'
     
-    # Ask if user wants a summary report
-    save_summary = input("Generate summary report? (y/n, default=y): ").lower()
-    generate_summary = save_summary != 'n'
-    
     # Process all PDFs
     processor = BatchPDFProcessor(pdf_paths)
     results = processor.process_all(save_individual_files=save_individual)
     
     # Display summary
     processor.display_summary()
-    
-    # Generate summary report if requested
-    if generate_summary:
-        # Use first PDF directory for summary file
-        summary_path = os.path.join(
-            os.path.dirname(pdf_paths[0]), 
-            'batch_processing_summary.txt'
-        )
-        processor.generate_summary_report(summary_path)
     
     print("\n" + "=" * 80)
     print("✅ Batch processing complete!")
