@@ -48,6 +48,10 @@ htmlcov/
 # Output files
 *_extracted.txt
 batch_processing_summary.txt
+
+# Environment variables
+.env
+.env.local
 batch_summary.txt
 
 # Logs

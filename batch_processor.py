@@ -5,7 +5,11 @@ Process multiple financial PDFs and creates separate outputs for each
 
 import pdfplumber
 import os
+import json
 from pathlib import Path
+from fastapi import UploadFile
+from typing import List
+import tempfile
 
 
 class PDFExtractor:
@@ -79,15 +83,93 @@ class PDFExtractor:
 class BatchPDFProcessor:
     """Process multiple PDF files and generate separate outputs"""
     
-    def __init__(self, pdf_paths):
+    def __init__(self, pdf_paths=None):
         """
         Initialize batch processor
         
         Args:
-            pdf_paths (list): List of PDF file paths
+            pdf_paths (list): List of PDF file paths (optional for API usage)
         """
-        self.pdf_paths = pdf_paths
+        self.pdf_paths = pdf_paths or []
         self.results = []
+    
+    @staticmethod
+    async def process_uploaded_files(files: List[UploadFile]) -> dict:
+        """
+        Process PDF files uploaded from frontend
+        
+        Args:
+            files: List of uploaded PDF files from FastAPI
+            
+        Returns:
+            dict: Processing results with extracted text
+        """
+        temp_files = []
+        processor = BatchPDFProcessor()
+        
+        try:
+            # Save uploaded files to temporary location
+            for file in files:
+                if not file.filename.lower().endswith('.pdf'):
+                    continue
+                
+                # Create temporary file
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+                content = await file.read()
+                temp_file.write(content)
+                temp_file.close()
+                
+                temp_files.append(temp_file.name)
+                processor.pdf_paths.append(temp_file.name)
+            
+            if not processor.pdf_paths:
+                return {
+                    'success': False,
+                    'error': 'No valid PDF files provided'
+                }
+            
+            # Process all PDFs
+            processor.process_all(save_individual_files=False)
+            
+            # Get successful results
+            successful_results = [r for r in processor.results if r['success']]
+            
+            if not successful_results:
+                return {
+                    'success': False,
+                    'error': 'Failed to extract text from PDFs',
+                    'results': processor.results
+                }
+            
+            # Combine all extracted text
+            combined_text = ""
+            for result in successful_results:
+                combined_text += result['text'] + "\n\n"
+            
+            return {
+                'success': True,
+                'text': combined_text.strip(),
+                'total_pdfs': len(processor.pdf_paths),
+                'successful_extractions': len(successful_results),
+                'results': [
+                    {
+                        'filename': r['filename'],
+                        'success': r['success'],
+                        'total_pages': r.get('total_pages', 0),
+                        'pages_with_text': r.get('pages_with_text', 0),
+                        'error': r.get('error')
+                    }
+                    for r in processor.results
+                ]
+            }
+            
+        finally:
+            # Clean up temporary files
+            for temp_file in temp_files:
+                try:
+                    os.unlink(temp_file)
+                except:
+                    pass
         
     def process_all(self, save_individual_files=True):
         """
@@ -170,6 +252,53 @@ class BatchPDFProcessor:
                 f.write(page_data['text'])
                 f.write("\n\n")
     
+    def save_to_ocr_json(self, output_path="ocr_text.json"):
+        """
+        Save the extracted text to ocr_text.json format for LLM processing
+        
+        Args:
+            output_path (str): Path to save the JSON file (default: ocr_text.json)
+        """
+        if not self.results:
+            print("❌ No results to save. Process PDFs first.")
+            return False
+        
+        # Get the first successful result
+        successful_result = next((r for r in self.results if r['success']), None)
+        
+        if not successful_result:
+            print("❌ No successful extractions to save.")
+            return False
+        
+        # Format text with page separators as expected by LLM
+        formatted_text = ""
+        extractor = successful_result['extractor']
+        
+        for page_data in extractor.text_content:
+            formatted_text += f"--- PAGE {page_data['page']} --- {page_data['text']} "
+        
+        # Create JSON structure
+        ocr_data = {
+            "text": formatted_text.strip()
+        }
+        
+        # Ensure directory exists (only if path contains a directory)
+        output_dir = os.path.dirname(output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+        
+        # Save to JSON file
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(ocr_data, f, indent=2, ensure_ascii=False)
+            
+            print(f"\n💾 Saved OCR text to: {output_path}")
+            print(f"   Text length: {len(formatted_text)} characters")
+            return True
+        except Exception as e:
+            print(f"❌ Error saving JSON: {str(e)}")
+            return False
+    
     def display_summary(self):
         """Display summary of batch processing"""
         print("\n\n" + "=" * 80)
@@ -238,6 +367,9 @@ def main():
     
     # Display summary
     processor.display_summary()
+    
+    # Save to ocr_text.json for LLM processing
+    processor.save_to_ocr_json()
     
     print("\n" + "=" * 80)
     print("✅ Batch processing complete!")
