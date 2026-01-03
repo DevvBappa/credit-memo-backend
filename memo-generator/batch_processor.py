@@ -5,6 +5,7 @@ Process multiple financial PDFs and creates separate outputs for each
 
 import pdfplumber
 import os
+import json
 from pathlib import Path
 
 
@@ -170,6 +171,53 @@ class BatchPDFProcessor:
                 f.write(page_data['text'])
                 f.write("\n\n")
     
+    def save_to_ocr_json(self, output_path="ocr_text.json"):
+        """
+        Save the extracted text to ocr_text.json format for LLM processing
+        
+        Args:
+            output_path (str): Path to save the JSON file (default: ocr_text.json)
+        """
+        if not self.results:
+            print("❌ No results to save. Process PDFs first.")
+            return False
+        
+        # Get the first successful result
+        successful_result = next((r for r in self.results if r['success']), None)
+        
+        if not successful_result:
+            print("❌ No successful extractions to save.")
+            return False
+        
+        # Format text with page separators as expected by LLM
+        formatted_text = ""
+        extractor = successful_result['extractor']
+        
+        for page_data in extractor.text_content:
+            formatted_text += f"--- PAGE {page_data['page']} --- {page_data['text']} "
+        
+        # Create JSON structure
+        ocr_data = {
+            "text": formatted_text.strip()
+        }
+        
+        # Ensure directory exists (only if path contains a directory)
+        output_dir = os.path.dirname(output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+        
+        # Save to JSON file
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(ocr_data, f, indent=2, ensure_ascii=False)
+            
+            print(f"\n💾 Saved OCR text to: {output_path}")
+            print(f"   Text length: {len(formatted_text)} characters")
+            return True
+        except Exception as e:
+            print(f"❌ Error saving JSON: {str(e)}")
+            return False
+    
     def display_summary(self):
         """Display summary of batch processing"""
         print("\n\n" + "=" * 80)
@@ -238,6 +286,9 @@ def main():
     
     # Display summary
     processor.display_summary()
+    
+    # Save to ocr_text.json for LLM processing
+    processor.save_to_ocr_json()
     
     print("\n" + "=" * 80)
     print("✅ Batch processing complete!")
