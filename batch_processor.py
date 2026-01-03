@@ -1,11 +1,79 @@
 """
-Batch PDF Processor - Process multiple PDFs at once
-Handles multiple financial PDFs and creates separate outputs for each
+Credit Memo Auto-Generator - Batch PDF Processor
+Process multiple financial PDFs and creates separate outputs for each
 """
 
-from pdf_extractor import PDFExtractor
+import pdfplumber
 import os
 from pathlib import Path
+
+
+class PDFExtractor:
+    """Extract text from PDF files"""
+    
+    def __init__(self, pdf_path):
+        """
+        Initialize the PDF extractor
+        
+        Args:
+            pdf_path (str): Path to the PDF file
+        """
+        self.pdf_path = pdf_path
+        self.text_content = []
+        self.metadata = {}
+        
+    def extract_text(self):
+        """
+        Extract text from PDF file
+        
+        Returns:
+            dict: Dictionary containing extracted text and metadata
+        """
+        try:
+            with pdfplumber.open(self.pdf_path) as pdf:
+                # Get metadata
+                self.metadata = {
+                    'total_pages': len(pdf.pages),
+                    'filename': os.path.basename(self.pdf_path)
+                }
+                
+                # Extract text from each page
+                for page_num, page in enumerate(pdf.pages, start=1):
+                    text = page.extract_text()
+                    
+                    if text:
+                        self.text_content.append({
+                            'page': page_num,
+                            'text': text.strip()
+                        })
+                
+                return {
+                    'success': True,
+                    'metadata': self.metadata,
+                    'content': self.text_content,
+                    'total_pages': self.metadata['total_pages'],
+                    'pages_with_text': len(self.text_content)
+                }
+                
+        except FileNotFoundError:
+            return {
+                'success': False,
+                'error': f"PDF file not found: {self.pdf_path}"
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f"Error extracting PDF: {str(e)}"
+            }
+    
+    def get_full_text(self):
+        """
+        Get all extracted text as a single string
+        
+        Returns:
+            str: Complete text from all pages
+        """
+        return "\n\n".join([page['text'] for page in self.text_content])
 
 
 class BatchPDFProcessor:
