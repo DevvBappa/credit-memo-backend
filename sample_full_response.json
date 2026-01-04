@@ -1,0 +1,104 @@
+{
+  "company_info": {
+    "name": "Zenith Industries Ltd.",
+    "address": "",
+    "gstin": "",
+    "state": "",
+    "state_code": "",
+    "email": null,
+    "phone": null
+  },
+  "buyer_info": {
+    "name": "",
+    "address": "",
+    "gstin": "",
+    "state": "",
+    "state_code": ""
+  },
+  "memo_meta": {
+    "credit_note_no": "",
+    "date": "",
+    "buyers_ref": "",
+    "buyers_order_no": "",
+    "order_date": "",
+    "dispatch_doc_no": "",
+    "dispatch_through": "",
+    "destination": "",
+    "terms": ""
+  },
+  "memo_items": [],
+  "cgst_rate": 0.0,
+  "sgst_rate": 0.0,
+  "executive_summary": [
+    "Revenue growth increased by 14.5% from INR 16,400,000 in 2023 to INR 18,750,000 in 2024.",
+    "Profit After Tax increased by 39.1% from INR 1,920,000 in 2023 to INR 2,670,000 in 2024.",
+    "The company's cash balance increased by 51.1% from INR 2,250,000 in 2023 to INR 3,400,000 in 2024.",
+    "The debt-to-equity ratio decreased from 0.46 in 2023 to 0.39 in 2024, indicating a reduction in debt.",
+    "The return on equity (ROE) increased to 20.6% in 2024 from 14.5% in 2023, indicating improved profitability."
+  ],
+  "key_metrics": [
+    {
+      "name": "Sales Revenue",
+      "value": "18,750,000",
+      "period": "2024",
+      "direction": "increase",
+      "source_pages": [1],
+      "confidence": "strong"
+    },
+    {
+      "name": "Profit After Tax",
+      "value": "2,670,000",
+      "period": "2024",
+      "direction": "increase",
+      "source_pages": [1],
+      "confidence": "strong"
+    },
+    {
+      "name": "Cash Balance",
+      "value": "3,400,000",
+      "period": "2024",
+      "direction": "increase",
+      "source_pages": [2],
+      "confidence": "strong"
+    },
+    {
+      "name": "Debt-to-Equity Ratio",
+      "value": "0.39",
+      "period": "2024",
+      "direction": "decrease",
+      "source_pages": [3],
+      "confidence": "calculated"
+    },
+    {
+      "name": "Return on Equity (ROE)",
+      "value": "20.6%",
+      "period": "2024",
+      "direction": "increase",
+      "source_pages": [1, 3],
+      "confidence": "calculated"
+    }
+  ],
+  "top_risks": [
+    {
+      "title": "High Debt Levels",
+      "description": "The company's debt levels are high, with a debt-to-equity ratio of 0.39 in 2024.",
+      "severity": "medium",
+      "source_pages": [3],
+      "confidence": "calculated"
+    },
+    {
+      "title": "Cash Flow Risks",
+      "description": "The company's cash flow from operating activities decreased by 19.2% from INR 3,100,000 in 2024 to INR 2,600,000 in 2023.",
+      "severity": "low",
+      "source_pages": [2],
+      "confidence": "strong"
+    },
+    {
+      "title": "Declining Margins",
+      "description": "The company's profit margins decreased from 11.5% in 2023 to 10.6% in 2024.",
+      "severity": "low",
+      "source_pages": [1],
+      "confidence": "calculated"
+    }
+  ]
+}
